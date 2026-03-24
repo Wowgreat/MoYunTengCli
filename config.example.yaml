@@ -1,0 +1,48 @@
+# Copy this file to config.yaml and fill in your real values.
+
+box:
+  # Box management API base URL, usually http://<box-ip>:8000
+  base_url: "http://10.0.103.227:8000"
+
+  # Request timeout for box and Android API calls.
+  timeout_seconds: 30
+
+  # Most deployments are plain HTTP inside LAN.
+  verify_ssl: false
+
+  auth:
+    # Supported values: none, basic, bearer
+    type: "basic"
+
+    # Used when type=basic
+    username: "admin"
+    password: "change-me"
+
+    # Used when type=bearer
+    token: ""
+
+task:
+  # Poll interval for async task status checks.
+  poll_interval_seconds: 5
+
+  # Maximum wait time for async tasks.
+  timeout_seconds: 1800
+
+backup:
+  # Backup filename template used locally when a fallback name is needed.
+  name_template: "{vm}_{date}.zip"
+
+  # Local directory for downloaded backup artifacts.
+  download_dir: "artifacts/backups"
+
+restore:
+  # Max slot count used when automatically finding a free indexNum.
+  # Use 12 for Q1, 24 for P1 unless your environment differs.
+  max_index_num: 24
+
+logging:
+  # Supported levels: DEBUG, INFO, WARNING, ERROR
+  level: "INFO"
+
+  # Local log file path.
+  file: "logs/myt-cli.log"
