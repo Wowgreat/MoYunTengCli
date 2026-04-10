@@ -14,12 +14,21 @@ class VmService:
 
     def get_vm_by_name(self, name: str) -> Dict[str, Any]:
         data = self._client.list_vms(name=name)
-        candidates = [item for item in self._extract_items(data) if item.get("name") == name]
-        if not candidates:
-            raise NotFoundError(f"VM not found: {name}")
+        items = self._extract_items(data)
+
+        candidates = [item for item in items if item.get("name") == name]
+        if len(candidates) == 1:
+            return candidates[0]
         if len(candidates) > 1:
             raise MultipleMatchesError(f"Multiple VMs matched name: {name}")
-        return candidates[0]
+
+        suffix_candidates = [item for item in items if self._matches_name_suffix(item.get("name"), name)]
+        if len(suffix_candidates) == 1:
+            return suffix_candidates[0]
+        if len(suffix_candidates) > 1:
+            raise MultipleMatchesError(f"Multiple VMs matched name suffix: {name}")
+
+        raise NotFoundError(f"VM not found: {name}")
 
     def find_first_free_index_num(self, *, max_index_num: int) -> int:
         used_indexes = set()  # type: Set[int]
@@ -52,3 +61,8 @@ class VmService:
             except (TypeError, ValueError):
                 continue
         return None
+
+    def _matches_name_suffix(self, value: Any, name: str) -> bool:
+        if not isinstance(value, str):
+            return False
+        return value.endswith(f"_{name}")

@@ -33,6 +33,7 @@ class TaskConfig:
 class BackupConfig:
     name_template: str = "{vm}_{date}.zip"
     download_dir: str = "artifacts/backups"
+    export_timeout_seconds: Optional[int] = None
 
 
 @dataclass
@@ -96,6 +97,11 @@ def load_config(path: Union[str, Path]) -> AppConfig:
         backup=BackupConfig(
             name_template=str(backup_raw.get("name_template", "{vm}_{date}.zip")),
             download_dir=str(backup_raw.get("download_dir", "artifacts/backups")),
+            export_timeout_seconds=(
+                int(backup_raw["export_timeout_seconds"])
+                if backup_raw.get("export_timeout_seconds") is not None
+                else None
+            ),
         ),
         restore=RestoreConfig(
             max_index_num=int(restore_raw.get("max_index_num", 24)),

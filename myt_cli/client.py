@@ -44,8 +44,8 @@ class MytClient:
     def delete_vm(self, name: str) -> Dict[str, Any]:
         return self._request("DELETE", "/android", json={"name": name})
 
-    def export_vm(self, name: str) -> Dict[str, Any]:
-        return self._request("POST", "/android/export", json={"name": name})
+    def export_vm(self, name: str, *, timeout_seconds: Optional[int] = None) -> Dict[str, Any]:
+        return self._request("POST", "/android/export", json={"name": name}, timeout=timeout_seconds)
 
     def list_backups(self, *, name: Optional[str] = None) -> Dict[str, Any]:
         params = {"name": name} if name else None
@@ -83,11 +83,12 @@ class MytClient:
 
     def _request(self, method: str, path: str, **kwargs: Any) -> Dict[str, Any]:
         LOGGER.debug("request %s %s", method, path)
+        timeout = kwargs.pop("timeout", self._config.timeout_seconds)
         try:
             response = self._session.request(
                 method=method,
                 url=self._url(path),
-                timeout=self._config.timeout_seconds,
+                timeout=timeout,
                 verify=self._config.verify_ssl,
                 **kwargs,
             )

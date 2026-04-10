@@ -33,7 +33,11 @@ backup:
   name_template: "{vm}_{date}.zip"
 
   # Local directory for downloaded backup artifacts.
+  # Successful backups also append mapping records to artifacts/backup-mapping.json.
   download_dir: "artifacts/backups"
+
+  # Override timeout for long-running export operations.
+  export_timeout_seconds: 300
 
 restore:
   # Max slot count used when automatically finding a free indexNum.

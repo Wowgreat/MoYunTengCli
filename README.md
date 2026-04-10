@@ -41,6 +41,8 @@ CLI 命令：
 - `stop`
 - `delete`
 - `backup`
+- `backup-all`
+- `backups`
 - `restore`
 - `s5-status`
 - `s5-set`
@@ -109,6 +111,7 @@ task:
 backup:
   name_template: "{vm}_{date}.zip"
   download_dir: "artifacts/backups"
+  export_timeout_seconds: 300
 
 restore:
   max_index_num: 24
@@ -143,31 +146,31 @@ logging:
 ### 1. 查看云机列表
 
 ```bash
-myt-cli --config config.yaml list
+myt-cli list
 ```
 
 ### 2. 查看指定云机状态
 
 ```bash
-myt-cli --config config.yaml status --name 001
+myt-cli status --name 001
 ```
 
 ### 3. 启动云机
 
 ```bash
-myt-cli --config config.yaml start --name 001
+myt-cli start --name 001
 ```
 
 ### 4. 关闭云机
 
 ```bash
-myt-cli --config config.yaml stop --name 001
+myt-cli stop --name 001
 ```
 
 ### 5. 删除云机
 
 ```bash
-myt-cli --config config.yaml delete --name 001
+myt-cli delete --name 001
 ```
 
 说明：
@@ -178,8 +181,33 @@ myt-cli --config config.yaml delete --name 001
 ### 6. 备份云机
 
 ```bash
-myt-cli --config config.yaml backup --name 001
+myt-cli backup --name 001
 ```
+
+`backup.export_timeout_seconds` can be used to override the default 30-second request timeout for long-running export operations.
+
+批量备份所有有云机的坑位：
+
+```bash
+myt-cli backup-all
+```
+
+成功的备份会追加记录到 `artifacts/backup-mapping.json`。
+
+说明：
+- 只处理当前有云机的坑位，空坑位会跳过
+- 按顺序逐台备份，不做并发
+- 单台备份失败不会中断后续坑位，命令结束时会输出汇总
+
+```bash
+myt-cli backups
+```
+
+```bash
+myt-cli backups --name 001_20260324.zip
+```
+
+成功备份产生的 `vm_name` 和 `backup_name` 也会写入 `artifacts/backup-mapping.json`。
 
 说明：
 
@@ -193,13 +221,13 @@ myt-cli --config config.yaml backup --name 001
 自动选择空闲坑位：
 
 ```bash
-myt-cli --config config.yaml restore --backup 001_20260324.zip --target 001-restore
+myt-cli restore --backup 001_20260324.zip --target 001-restore
 ```
 
 手动指定坑位：
 
 ```bash
-myt-cli --config config.yaml restore --backup 001_20260324.zip --index-num 2 --target 001-restore
+myt-cli restore --backup 001_20260324.zip --index-num 2 --target 001-restore
 ```
 
 说明：
@@ -214,7 +242,7 @@ myt-cli --config config.yaml restore --backup 001_20260324.zip --index-num 2 --t
 ### 8. 查询 S5 代理状态
 
 ```bash
-myt-cli --config config.yaml s5-status --name 001
+myt-cli s5-status --name 001
 ```
 
 示例输出：
@@ -306,6 +334,8 @@ from myt_cli import create_app_from_path
 app = create_app_from_path("config.yaml")
 
 backup_result = app.backup_vm("001")
+backup_all_result = app.backup_all_vms()
+backups = app.list_backups()
 
 restore_result = app.restore_backup(
     backup_name="001_20260324.zip",
@@ -313,7 +343,19 @@ restore_result = app.restore_backup(
 )
 
 print(backup_result)
+print(backup_all_result)
+print(backups)
 print(restore_result)
+```
+
+```json
+[
+  {
+    "vm_name": "1775617170315_1_T0001",
+    "backup_name": "1775617170315_1_T0001-20260409103000.tar.gz",
+    "created_at": "2026-04-09T10:30:00+08:00"
+  }
+]
 ```
 
 ### S5 代理

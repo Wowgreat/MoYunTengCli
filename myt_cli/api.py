@@ -40,6 +40,12 @@ class MytApp:
     def backup_vm(self, name: str) -> Dict:
         return self.backup_service.backup_vm(name)
 
+    def backup_all_vms(self) -> Dict:
+        return self.backup_service.backup_all_vms()
+
+    def list_backups(self, name: Optional[str] = None) -> List[Dict]:
+        return self.backup_service.list_backups(name=name)
+
     def restore_backup(self, *, backup_name: str, target_name: Optional[str] = None, index_num: Optional[int] = None) -> Dict:
         return self.restore_service.restore_backup(
             backup_name=backup_name,
